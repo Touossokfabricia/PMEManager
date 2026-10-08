@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+    @page { size: A4; margin: 2cm; }
+    body { font-family: Helvetica, Arial, sans-serif; font-size: 11pt; color: #1f2937; }
+    .header { width: 100%; margin-bottom: 24px; }
+    .header td { vertical-align: top; }
+    .entreprise-nom { font-size: 18pt; font-weight: bold; color: #4f46e5; }
+    .entreprise-info { font-size: 9pt; color: #6b7280; margin-top: 4px; }
+    .facture-titre { font-size: 16pt; font-weight: bold; text-align: right; }
+    .facture-numero { font-size: 10pt; color: #6b7280; text-align: right; }
+    .bloc-client { margin: 20px 0; padding: 12px; background: #f8fafc; border-radius: 4px; }
+    .bloc-client-titre { font-size: 8pt; text-transform: uppercase; color: #6b7280; margin-bottom: 4px; }
+    table.lignes { width: 100%; border-collapse: collapse; margin-top: 16px; }
+    table.lignes th { background: #f1f5f9; text-align: left; padding: 8px; font-size: 9pt; color: #475569; border-bottom: 2px solid #e2e8f0; }
+    table.lignes td { padding: 8px; border-bottom: 1px solid #e2e8f0; font-size: 10pt; }
+    .text-right { text-align: right; }
+    .total-row td { font-weight: bold; font-size: 12pt; border-top: 2px solid #1f2937; padding-top: 12px; }
+    .footer { margin-top: 40px; font-size: 8pt; color: #9ca3af; text-align: center; }
+    .statut { display: inline-block; padding: 4px 10px; border-radius: 12px; font-size: 8pt; font-weight: bold; }
+    .statut-paye { background: #dcfce7; color: #166534; }
+    .statut-en_attente { background: #dbeafe; color: #1e40af; }
+    .statut-en_retard { background: #fee2e2; color: #991b1b; }
+    .statut-brouillon { background: #f1f5f9; color: #475569; }
+    .statut-annulee { background: #fee2e2; color: #991b1b; }
+</style>
+</head>
+<body>
+    <table class="header">
+        <tr>
+            <td width="50%">
+                <div class="entreprise-nom">{{ entreprise.nom }}</div>
+                <div class="entreprise-info">
+                    {{ entreprise.secteur_activite }}<br/>
+                    {{ entreprise.localisation }}
+                </div>
+            </td>
+            <td width="50%">
+                <div class="facture-titre">FACTURE</div>
+                <div class="facture-numero">{{ facture.numero }}</div>
+                <div class="facture-numero">Émise le {{ facture.date_emission|date:"d/m/Y" }}</div>
+                <div style="text-align:right; margin-top:6px;">
+                    <span class="statut statut-{{ facture.statut_affiche }}">
+                        {% if facture.statut_affiche == 'paye' %}PAYÉE
+                        {% elif facture.statut_affiche == 'en_retard' %}EN RETARD
+                        {% elif facture.statut_affiche == 'brouillon' %}BROUILLON
+                        {% elif facture.statut_affiche == 'annulee' %}ANNULÉE
+                        {% else %}EN ATTENTE{% endif %}
+                    </span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="bloc-client">
+        <div class="bloc-client-titre">Facturé à</div>
+        <strong>{{ facture.client.nom }}</strong><br/>
+        {% if facture.client.contact %}{{ facture.client.contact }}<br/>{% endif %}
+        {% if facture.client.adresse %}{{ facture.client.adresse }}{% endif %}
+    </div>
+
+    <table class="lignes">
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th class="text-right">Quantité</th>
+                <th class="text-right">Prix unitaire</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in facture.lignes.all %}
+            <tr>
+                <td>{{ ligne.designation }}{% if not ligne.produit_id %} <i>(service)</i>{% endif %}</td>
+                <td class="text-right">{{ ligne.quantite }}</td>
+                <td class="text-right">{{ ligne.prix_unitaire }} FCFA</td>
+                <td class="text-right">{{ ligne.montant_ligne }} FCFA</td>
+            </tr>
+            {% endfor %}
+            <tr class="total-row">
+                <td colspan="3" class="text-right">Total</td>
+                <td class="text-right">{{ facture.montant_total }} FCFA</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Facture générée par PMEManager — {{ entreprise.nom }}
+    </div>
+</body>
+</html>
